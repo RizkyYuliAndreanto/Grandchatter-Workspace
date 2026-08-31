@@ -1,0 +1,22 @@
+# --- credentials & user config (NEVER commit) ---
+config.yaml
+
+# --- user data / outputs ---
+outputs/
+*.wav
+*.mp3
+prompt_audio/*.wav
+!prompt_audio/.gitkeep
+
+# --- python artifacts ---
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# --- downloaded binaries (per-session) ---
+cloudflared
+cloudflared.exe
+
+# --- gradio cache ---
+.gradio/

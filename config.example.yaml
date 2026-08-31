@@ -1,0 +1,20 @@
+# Copy this file to config.yaml and edit values there.
+# config.yaml is gitignored — never commit credentials.
+
+model:
+  finetune_repo: "grandhigh/Chatterbox-TTS-Indonesian"   # HF repo with t3_cfg.safetensors
+  voice_default: "prompt_audio/sample_voice.wav"
+
+tunnel:
+  mode: "share"          # share | ngrok | cloudflare
+  password: ""           # empty = auto-generate & printed to console
+
+params:
+  temperature: 0.25      # 0.1 - 1.0
+  tempo: 1.0             # 0.8 - 1.5  (1.0 = normal speed)
+  pitch: 0               # -4 - +4 semitone
+  gap: 0.3               # 0.1 - 1.0 s silence between chunks
+
+output:
+  mp3: false             # true = encode MP3 (needs ffmpeg)
+  keep_chunks: true      # false = delete chunks after merge (save disk)
