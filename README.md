@@ -1,8 +1,10 @@
 <div align="center">
 
-# 🎙️ Indonesian TTS & Voice Cloning Studio
+# 🎙️ Grandchatter Workspace
 
-**Text-to-Speech Bahasa Indonesia + zero-shot voice cloning — berjalan penuh di GPU Kaggle, dikendalikan dari browser laptop Anda.**
+**Indonesian TTS & Voice Cloning Studio — Text-to-Speech Bahasa Indonesia + zero-shot voice cloning, berjalan penuh di GPU Kaggle, dikendalikan dari browser laptop Anda.**
+
+[![Repo](https://img.shields.io/badge/GitHub-RizkyYuliAndreanto%2FGrandchatter--Workspace-181717?logo=github&logoColor=white)](https://github.com/RizkyYuliAndreanto/Grandchatter-Workspace)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-Chatterbox-EE4C2C?logo=pytorch&logoColor=white)
@@ -83,11 +85,19 @@ indotts-kaggle/
 
 **Urutan pipeline terkunci:** normalisasi → chunking → TTS → tempo → pitch → fade → merge → normalize. Setiap urutan punya alasan — dijabarkan di [`tasks/flows/flow-pipeline.md`](tasks/flows/flow-pipeline.md).
 
+## 🎯 Motivasi
+
+> **Hardware bukan alasan untuk tidak memproduksi audio berkualitas.**
+
+Studio TTS lokal biasanya menuntut GPU kelas atas — realitasnya, tidak semua orang punya RTX 4090 di meja kerja. Project ini lahir dari kondisi yang sangat umum di Indonesia: laptop kerja spesifikasi menengah dengan GPU entry-level yang tidak cukup menjalankan inferensi TTS secara nyaman, sementara kebutuhannya nyata — voice-over naskah 10–30 menit untuk konten, narasi, dan materi edukasi.
+
+Solusinya bukan menurunkan kualitas, melainkan **memindahkan beban komputasi ke tempat yang tepat**: GPU P100/T4 16GB gratis di Kaggle (30 jam/minggu), dikendalikan lewat browser dari laptop apa pun. Pipeline dibangun dengan disiplin engineering yang sama seperti sistem produksi sungguhan — chunking anti-repetisi, resume otomatis anti-kegagalan, kualitas DSP yang dijaga, dan 54 unit test — karena **keterbatasan sumber daya membatasi hardware yang dipakai, bukan standar cara membangunnya.**
+
 ## 🧪 Development Lokal
 
 ```powershell
-git clone https://github.com/<USERNAME>/indotts-kaggle.git
-cd indotts-kaggle
+git clone https://github.com/RizkyYuliAndreanto/Grandchatter-Workspace.git
+cd Grandchatter-Workspace
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
