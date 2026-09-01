@@ -18,9 +18,9 @@ WARNING = (
 )
 
 
-def _slider(label, key):
+def _slider(label, key, value):
     lo, hi = LIMITS[key]
-    return gr.Slider(minimum=lo, maximum=hi, value=None, label=label)
+    return gr.Slider(minimum=lo, maximum=hi, value=value, label=label)
 
 
 def build_ui(settings, synth):
@@ -34,10 +34,10 @@ def build_ui(settings, synth):
                                   placeholder="Tempel naskah di sini...")
                 voice = gr.Audio(label="Voice referensi (5-10 detik, bersih)",
                                  type="filepath")
-                temp = _slider("Temperature", "temperature")
-                tempo = _slider("Tempo (1.0 = normal)", "tempo")
-                pitch = _slider("Pitch (semitone)", "pitch")
-                gap = _slider("Jeda antar kalimat (detik)", "gap")
+                temp = _slider("Temperature", "temperature", settings.params.temperature)
+                tempo = _slider("Tempo (1.0 = normal)", "tempo", settings.params.tempo)
+                pitch = _slider("Pitch (semitone)", "pitch", settings.params.pitch)
+                gap = _slider("Jeda antar kalimat (detik)", "gap", settings.params.gap)
                 btn = gr.Button("Generate Speech", variant="primary")
             with gr.Column():
                 out_audio = gr.Audio(label="Hasil", interactive=False)
