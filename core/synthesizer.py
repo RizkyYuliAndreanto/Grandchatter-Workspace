@@ -24,7 +24,6 @@ class Synthesizer:
 
         # Fine-tune: load t3_cfg.safetensors INTO the base instance (never a
         # second model). Log keys — silent failure = model speaks English.
-        import torchaudio  # noqa: F401  (ensures audio backend is up)
         from huggingface_hub import hf_hub_download
         from safetensors.torch import load_file
 
@@ -49,20 +48,22 @@ class Synthesizer:
             logger.info("voice cache hit %s", h)
             return self._cond_cache[h]
 
-        import torch
-        import torchaudio as ta
+        # torchaudio 2.10 dropped file I/O (removed on Kaggle) -> soundfile+soxr.
+        import soundfile as sf
+        import soxr
 
         # Trim to first 8s (owner's notebook approach) — consistent timbre.
-        info = ta.info(voice_path)
-        wav, sr = ta.load(voice_path, frame_offset=0,
-                          num_frames=int(info.sample_rate * 8))
-        if wav.shape[0] > 1:  # stereo -> mono
-            wav = wav.mean(dim=0, keepdim=True)
+        info = sf.info(voice_path)
+        n_frames = int(info.samplerate * 8)
+        wav, sr = sf.read(voice_path, frames=n_frames, dtype="float32",
+                          always_2d=True)
+        if wav.shape[1] > 1:  # stereo -> mono
+            wav = wav.mean(axis=1, keepdims=True)
         if sr != self.sr:
-            wav = ta.functional.resample(wav, sr, self.sr)
+            wav = soxr.resample(wav.squeeze(1), sr, self.sr)[:, None]
         tmp = f"/tmp/voice_{h}.wav" if os.name != "nt" else os.path.join(
             os.environ.get("TEMP", "."), f"voice_{h}.wav")
-        ta.save(tmp, wav, self.sr)
+        sf.write(tmp, wav, self.sr)
         self._cond_cache[h] = tmp
         print(f"[synth] voice prepared: {tmp} ({self.sr}Hz, "
               f"{wav.shape[-1] / self.sr:.1f}s)")
