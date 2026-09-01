@@ -2,7 +2,7 @@
 
 # 🎙️ Grandchatter Workspace
 
-**Indonesian TTS & Voice Cloning Studio — Text-to-Speech Bahasa Indonesia + zero-shot voice cloning, berjalan penuh di GPU Kaggle, dikendalikan dari browser laptop Anda.**
+**Indonesian TTS & Voice Cloning Studio — Text-to-Speech Bahasa Indonesia + zero-shot voice cloning. Jalankan di GPU gratis Kaggle, atau langsung di laptop Anda (model diunduh lokal, bisa offline).**
 
 [![Repo](https://img.shields.io/badge/GitHub-RizkyYuliAndreanto%2FGrandchatter--Workspace-181717?logo=github&logoColor=white)](https://github.com/RizkyYuliAndreanto/Grandchatter-Workspace)
 
@@ -18,12 +18,14 @@
 
 ## ✨ Apa Ini?
 
-Naskah panjang masuk → audio suara natural keluar. Semua pemrosesan model berjalan di **GPU gratis Kaggle (P100/T4 16GB)**, laptop Anda hanya membuka satu halaman web — tanpa install berat, tanpa GPU sendiri, tanpa edit kode untuk mengubah parameter.
+Naskah panjang masuk → audio suara natural keluar. Dua mode deploy:
+- **Kaggle GPU** (utama, naskah 10–30 menit) — semua pemrosesan model di GPU gratis Kaggle (P100/T4 16GB), laptop Anda hanya membuka halaman web, parameter diatur lewat slider tanpa sentuh kode.
+- **Laptop lokal** (naskah pendek / tanpa internet) — model diunduh sekali ke folder project, jalan penuh di mesin Anda.
 
 ```
- Naskah mentah ──► [ Normalizer ] ──► [ Chunker ≤250 char ] ──► [ TTS per chunk (Kaggle GPU) ]
-                                                                        │
- Browser laptop ◄── [ Download ZIP ] ◄── [ Merge + Normalize ] ◄── [ Tempo · Pitch · Fade ]
+ Naskah mentah ──► [ Normalizer ] ──► [ Chunker ≤250 char ] ──► [ TTS per chunk (GPU/ CPU) ]
+                                                                         │
+ Browser/lokasi ◄── [ WAV / ZIP ] ◄── [ Merge + Normalize ] ◄── [ Tempo · Pitch · Fade ]
 ```
 
 ## 🚀 Fitur Utama
@@ -103,7 +105,7 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-pytest tests\              # 54 test, tanpa GPU
+pytest tests\              # 57 test, tanpa GPU
 python app.py --dry-ui     # UI penuh dengan mock synthesizer (tanpa model)
 ```
 
