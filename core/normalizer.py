@@ -107,13 +107,17 @@ def _country_code_to_words(m: re.Match) -> str:
 
 
 def _time_to_words(m: re.Match) -> str:
+    # Broadcast/digital style: "14:30" -> "empat belas tiga puluh",
+    # "07:05" -> "nol tujuh nol lima" (unambiguous, natural for TTS).
     h, mm = int(m.group(1)), int(m.group(2))
-    words = _int_to_words(h)
+    hour = _int_to_words(h) if h >= 10 else f"nol {_int_to_words(h)}"
     if mm == 0:
-        return f"{words} tepat"
-    if mm == 30:
-        return f"{words} setengah"
-    return f"{words} lewat {_int_to_words(mm)} menit"
+        minute = "nol nol"
+    elif mm < 10:
+        minute = f"nol {_int_to_words(mm)}"
+    else:
+        minute = _int_to_words(mm)
+    return f"{hour} {minute}"
 
 
 # ---------------------------------------------------------------------------

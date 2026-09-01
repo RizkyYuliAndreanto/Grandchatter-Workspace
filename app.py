@@ -4,7 +4,13 @@ Launch: python app.py [--dry-ui]   (dry-ui = MockSynthesizer, no GPU/model)
 Model loads BEFORE the tunnel rises so the URL only appears when ready.
 """
 import argparse
+import os
 import time
+
+# Model cache on the project drive (C: is small) — must run before any HF import.
+os.environ.setdefault(
+    "HF_HOME",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "hf-cache"))
 
 import gradio as gr
 import soundfile as sf

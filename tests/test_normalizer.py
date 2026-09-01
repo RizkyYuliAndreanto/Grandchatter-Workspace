@@ -22,7 +22,7 @@ def test_phone_per_digit():
 
 def test_time():
     out = normalize("Pukul 14:30 WIB rapat dimulai.")
-    assert "empat belas setengah" in out  # 14:30 -> "lewat setengah" form
+    assert "empat belas tiga puluh" in out  # digital style, unambiguous
     assert "W I B" in out
 
 
@@ -67,3 +67,8 @@ def test_idempotent():
     raw = "Harga Rp 50.000 pada tahun 2026, naik 3.5%. Hubungi 081234567890. Pukul 14:30 WIB."
     once = normalize(raw)
     assert normalize(once) == once
+
+
+def test_time_edge_cases():
+    assert normalize("jam 14:00.") == "jam empat belas nol nol."
+    assert normalize("jam 07:05.") == "jam nol tujuh nol lima."

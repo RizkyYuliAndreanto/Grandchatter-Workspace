@@ -18,5 +18,8 @@ __pycache__/
 cloudflared
 cloudflared.exe
 
+# --- local model cache (±2 GB, JANGAN di-push) ---
+hf-cache/
+
 # --- gradio cache ---
 .gradio/

@@ -10,7 +10,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-Chatterbox-EE4C2C?logo=pytorch&logoColor=white)
 ![Gradio](https://img.shields.io/badge/UI-Gradio-orange?logo=gradio&logoColor=white)
 ![Kaggle](https://img.shields.io/badge/Compute-Kaggle%20GPU-20BEFF?logo=kaggle&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-56%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-57%20passed-brightgreen)
 
 </div>
 
@@ -32,13 +32,13 @@ Naskah panjang masuk → audio suara natural keluar. Semua pemrosesan model berj
 |---|---|---|
 | 🧠 | **Voice Cloning Zero-shot** | Cukup 5–10 detik sampel suara — timbre dipertahankan di seluruh naskah |
 | 🇮🇩 | **Fine-tuned Bahasa Indonesia** | Checkpoint [`grandhigh/Chatterbox-TTS-Indonesian`](https://huggingface.co/grandhigh/Chatterbox-TTS-Indonesian) dimuat ke base model |
-| 🔢 | **Normalizer Bahasa Indonesia** | `Rp 50.000` → *lima puluh ribu rupiah* · `0812...` → dieja per digit · `14:30 WIB` → *empat belas setengah W I B* |
+| 🔢 | **Normalizer Bahasa Indonesia** | `Rp 50.000` → *lima puluh ribu rupiah* · `0812...` → dieja per digit · `14:30 WIB` → *empat belas tiga puluh W I B* |
 | 🎛️ | **Kontrol Penuh dari Slider** | Temperature, tempo, pitch (±4 semitone), jeda antar kalimat — **tanpa sentuh kode** |
 | 🛡️ | **Crash-Safe Batch** | Tiap chunk langsung ke disk; run terputus = *resume otomatis* dari chunk terakhir |
 | 🔁 | **Anti-Runtuh** | Chunk gagal di-retry 1× (temperature bump), dicatat di manifest, run tetap selesai |
 | 🌐 | **3 Mode Tunnel + Lokal** | `local` (tanpa tunnel, laptop-only) · `share` (zero-setup) · `ngrok` (domain statis) · `cloudflare` (quick tunnel) — via config, semua ber-password |
 | 💾 | **Export Sekali Klik** | ZIP berisi final WAV + semua chunk + manifest.json |
-| 🧪 | **54 Unit Test** | Pipeline teks, DSP, batch, resume, tunnel — semua teruji |
+| 🧪 | **57 Unit Test** | Pipeline teks, DSP, batch, resume, tunnel — semua teruji |
 
 ## 📦 Instalasi
 
@@ -69,18 +69,19 @@ Naskah panjang masuk → audio suara natural keluar. Semua pemrosesan model berj
 
 ```
 indotts-kaggle/
-├── app.py                  # Gradio UI + entry point (--dry-ui untuk test tanpa GPU)
+├── app.py                  # Gradio UI + entry point (--dry-ui tanpa GPU; HF_HOME → hf-cache/)
 ├── launcher.ipynb          # 3-cell Kaggle notebook
+├── hf-cache/               # model lokal ±2 GB (gitignored — drive project, bukan C:)
 ├── core/
-│   ├── normalizer.py       # angka/rupiah/HP/jam/akronim → ejaan (9 rule berurutan)
+│   ├── normalizer.py       # angka/rupiah/HP/jam (14:30 → "empat belas tiga puluh")/akronim
 │   ├── chunker.py          # split kalimat → koma → kata; ≤250 char anti-repetisi
 │   ├── batch.py            # loop chunk · resume-by-hash · retry · manifest
 │   ├── audio_fx.py         # tempo/pitch/fade/merge/normalize — murni float32
-│   ├── synthesizer.py      # 1 model instance + fine-tune + conditioning cache
+│   ├── synthesizer.py      # 1 model instance + fine-tune + conditioning cache + fp16 opsional
 │   ├── export.py           # ZIP run folder
 │   └── settings.py         # config.yaml + LIMITS (sumber kebenaran rentang)
-├── tunnels/                # share · ngrok · cloudflare + fallback otomatis
-└── tests/                  # 54 test — hijau tanpa GPU
+├── tunnels/                # local · share · ngrok · cloudflare + fallback otomatis
+└── tests/                  # 57 test — hijau tanpa GPU
 ```
 
 **Urutan pipeline terkunci:** normalisasi → chunking → TTS → tempo → pitch → fade → merge → normalize. Setiap urutan punya alasan — dijabarkan di [`tasks/flows/flow-pipeline.md`](tasks/flows/flow-pipeline.md).
@@ -91,7 +92,7 @@ indotts-kaggle/
 
 Studio TTS lokal biasanya menuntut GPU kelas atas — realitasnya, tidak semua orang punya RTX 4090 di meja kerja. Project ini lahir dari kondisi yang sangat umum di Indonesia: laptop kerja spesifikasi menengah dengan GPU entry-level yang tidak cukup menjalankan inferensi TTS secara nyaman, sementara kebutuhannya nyata — voice-over naskah 10–30 menit untuk konten, narasi, dan materi edukasi.
 
-Solusinya bukan menurunkan kualitas, melainkan **memindahkan beban komputasi ke tempat yang tepat**: GPU P100/T4 16GB gratis di Kaggle (30 jam/minggu), dikendalikan lewat browser dari laptop apa pun. Pipeline dibangun dengan disiplin engineering yang sama seperti sistem produksi sungguhan — chunking anti-repetisi, resume otomatis anti-kegagalan, kualitas DSP yang dijaga, dan 54 unit test — karena **keterbatasan sumber daya membatasi hardware yang dipakai, bukan standar cara membangunnya.**
+Solusinya bukan menurunkan kualitas, melainkan **memindahkan beban komputasi ke tempat yang tepat**: GPU P100/T4 16GB gratis di Kaggle (30 jam/minggu), dikendalikan lewat browser dari laptop apa pun. Pipeline dibangun dengan disiplin engineering yang sama seperti sistem produksi sungguhan — chunking anti-repetisi, resume otomatis anti-kegagalan, kualitas DSP yang dijaga, dan 57 unit test — karena **keterbatasan sumber daya membatasi hardware yang dipakai, bukan standar cara membangunnya.**
 
 ## 🧪 Development Lokal
 
@@ -108,8 +109,8 @@ python app.py --dry-ui     # UI penuh dengan mock synthesizer (tanpa model)
 
 ### 💻 Run di Laptop (model di-download lokal, tanpa Kaggle)
 
-Bisa jalan langsung di laptop — model diunduh sekali ke cache HuggingFace
-(`~/.cache/huggingface`, ±2 GB) lalu dipakai offline selamanya.
+Bisa jalan langsung di laptop — model diunduh sekali ke `hf-cache/` di folder
+project (±2 GB) lalu dipakai offline selamanya.
 
 1. Copy `config.example.yaml` → `config.yaml`, lalu sesuaikan untuk laptop low-end:
 
