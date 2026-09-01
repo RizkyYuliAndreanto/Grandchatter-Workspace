@@ -9,10 +9,12 @@ import traceback
 from core.settings import Settings, validate_tunnel_mode
 from tunnels.base import GRADIO_PORT, TunnelError  # noqa: F401 (re-exported)
 from tunnels.share_t import launch_share
+from tunnels.local_t import launch_local
 from tunnels.ngrok_t import launch_ngrok
 from tunnels.cloudflare_t import launch_cloudflare
 
 _LAUNCHERS = {
+    "local": launch_local,
     "share": launch_share,
     "ngrok": launch_ngrok,
     "cloudflare": launch_cloudflare,

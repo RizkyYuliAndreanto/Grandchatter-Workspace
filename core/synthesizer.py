@@ -17,10 +17,18 @@ class Synthesizer:
         import torch
         from chatterbox.tts import ChatterboxTTS
 
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or config.model.device or (
+            "cuda" if torch.cuda.is_available()
+            else "mps" if getattr(torch.backends, "mps", None)
+            and torch.backends.mps.is_available() else "cpu")
         print(f"[synth] device: {self.device}")
 
         self.model = ChatterboxTTS.from_pretrained(device=self.device)
+
+        self.sr = self.model.sr
+        self.fp16 = bool(config.model.fp16) and self.device == "cuda"
+        if self.fp16:
+            print("[synth] fp16 autocast ON (hemat VRAM aktivasi)")
 
         # Fine-tune: load t3_cfg.safetensors INTO the base instance (never a
         # second model). Log keys — silent failure = model speaks English.
@@ -74,10 +82,13 @@ class Synthesizer:
         import torch
 
         with torch.inference_mode():
-            wav = self.model.generate(
-                chunk,
-                audio_prompt_path=conditioning,
-                temperature=settings.params.temperature,
-                repetition_penalty=1.2,
-            )
+            ctx = (torch.autocast("cuda", dtype=torch.float16)
+                   if self.fp16 else torch.inference_mode())
+            with ctx:
+                wav = self.model.generate(
+                    chunk,
+                    audio_prompt_path=conditioning,
+                    temperature=settings.params.temperature,
+                    repetition_penalty=1.2,
+                )
         return wav.squeeze().cpu().numpy().astype(np.float32), self.sr

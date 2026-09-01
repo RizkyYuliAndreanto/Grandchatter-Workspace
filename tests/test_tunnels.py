@@ -74,6 +74,29 @@ def test_share_mode_receives_auth(monkeypatch):
     assert calls["password"] == "secret" and calls["demo"] is demo
 
 
+def test_local_mode_no_share(monkeypatch):
+    # local mode launches via launch_local, never opens the share tunnel
+    opened = []
+
+    def local(demo, password):
+        opened.append("local")
+
+    import tunnels
+    monkeypatch.setitem(tunnels._LAUNCHERS, "local", local)
+    launch_with_tunnel(_FakeDemo(), _fake_settings("local", "pw"))
+    assert opened == ["local"]
+
+
+def test_local_launch_kwargs():
+    from tunnels.local_t import launch_local
+
+    demo = _FakeDemo()
+    launch_local(demo, "pw")
+    assert demo.kwargs["share"] is False
+    assert demo.kwargs["server_name"] == "127.0.0.1"
+    assert demo.kwargs["auth"] == ("user", "pw")
+
+
 def test_invalid_mode_falls_back(monkeypatch):
     # validate_tunnel_mode raises before launching; dispatcher should surface it,
     # so we call with a settings object whose mode was validated upstream (app.py).

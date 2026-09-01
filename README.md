@@ -10,7 +10,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-Chatterbox-EE4C2C?logo=pytorch&logoColor=white)
 ![Gradio](https://img.shields.io/badge/UI-Gradio-orange?logo=gradio&logoColor=white)
 ![Kaggle](https://img.shields.io/badge/Compute-Kaggle%20GPU-20BEFF?logo=kaggle&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-54%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-56%20passed-brightgreen)
 
 </div>
 
@@ -36,7 +36,7 @@ Naskah panjang masuk → audio suara natural keluar. Semua pemrosesan model berj
 | 🎛️ | **Kontrol Penuh dari Slider** | Temperature, tempo, pitch (±4 semitone), jeda antar kalimat — **tanpa sentuh kode** |
 | 🛡️ | **Crash-Safe Batch** | Tiap chunk langsung ke disk; run terputus = *resume otomatis* dari chunk terakhir |
 | 🔁 | **Anti-Runtuh** | Chunk gagal di-retry 1× (temperature bump), dicatat di manifest, run tetap selesai |
-| 🌐 | **3 Mode Tunnel** | `share` (zero-setup) · `ngrok` (domain statis) · `cloudflare` (quick tunnel) — via config, semua ber-password |
+| 🌐 | **3 Mode Tunnel + Lokal** | `local` (tanpa tunnel, laptop-only) · `share` (zero-setup) · `ngrok` (domain statis) · `cloudflare` (quick tunnel) — via config, semua ber-password |
 | 💾 | **Export Sekali Klik** | ZIP berisi final WAV + semua chunk + manifest.json |
 | 🧪 | **54 Unit Test** | Pipeline teks, DSP, batch, resume, tunnel — semua teruji |
 
@@ -105,6 +105,33 @@ pip install -r requirements.txt
 pytest tests\              # 54 test, tanpa GPU
 python app.py --dry-ui     # UI penuh dengan mock synthesizer (tanpa model)
 ```
+
+### 💻 Run di Laptop (model di-download lokal, tanpa Kaggle)
+
+Bisa jalan langsung di laptop — model diunduh sekali ke cache HuggingFace
+(`~/.cache/huggingface`, ±2 GB) lalu dipakai offline selamanya.
+
+1. Copy `config.example.yaml` → `config.yaml`, lalu sesuaikan untuk laptop low-end:
+
+```yaml
+model:
+  device: "cpu"        # paksa CPU (hemat RAM/VRAM, tidak load ke GPU 4GB)
+  fp16: false
+tunnel:
+  mode: "local"        # tanpa tunnel — buka http://127.0.0.1:7860 di browser
+  password: "passwordku"
+```
+
+2. `python app.py` → buka `http://127.0.0.1:7860` (login: `user` + password config).
+
+**Ekspektasi CPU (Ryzen 5 5600, 16GB RAM):** RTF ≈ 3–6× (audio 1 menit ≈ 3–6 menit
+proses). Cukup untuk naskah pendek & proof-of-quality; naskah 10–30 menit tetap
+disarankan ke Kaggle GPU (RTF ≈ 0.15×). Jika RAM mepet: tutup aplikasi lain,
+dan tetap `device: "cpu"` — auto-detect hanya akan memakai GPU 4GB jika cukup.
+
+> **Mode `local` vs `share`:** `local` = hanya bisa diakses dari laptop itu
+> (tercepat, paling aman). `share` = membuka tunnel publik `*.gradio.live`
+> (untuk mengakses dari HP/perangkat lain).
 
 ## 📄 Dokumentasi
 

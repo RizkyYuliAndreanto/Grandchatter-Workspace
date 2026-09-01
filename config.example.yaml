@@ -4,9 +4,11 @@
 model:
   finetune_repo: "grandhigh/Chatterbox-TTS-Indonesian"   # HF repo with t3_cfg.safetensors
   voice_default: "prompt_audio/sample_voice.wav"
+  device: ""             # empty = auto (cuda > mps > cpu); "cpu" to force low-RAM
+  fp16: false            # cuda only: half-precision activations (~half VRAM)
 
 tunnel:
-  mode: "share"          # share | ngrok | cloudflare
+  mode: "share"          # local | share | ngrok | cloudflare  (local = no tunnel)
   password: ""           # empty = auto-generate & printed to console
 
 params:

@@ -3,11 +3,12 @@
 GRADIO_PORT = 7860
 
 
-def launch_share(demo, password: str) -> None:
-    print("[tunnel] share mode: public *.gradio.live URL will be printed below")
+def launch_share(demo, password: str, local_only: bool = False) -> None:
+    if not local_only:
+        print("[tunnel] share mode: public *.gradio.live URL will be printed below")
     demo.launch(
-        share=True,
+        share=not local_only,
         auth=("user", password),
-        server_name="0.0.0.0",
+        server_name="127.0.0.1" if local_only else "0.0.0.0",
         server_port=GRADIO_PORT,
     )

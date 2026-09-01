@@ -15,7 +15,7 @@ LIMITS = {
     "gap": (0.1, 1.0),
 }
 
-TUNNEL_MODES = ("share", "ngrok", "cloudflare")
+TUNNEL_MODES = ("local", "share", "ngrok", "cloudflare")
 
 VALIDATE_TUNNEL_ERROR = "tunnel.mode must be one of {} (got {{!r}})".format(", ".join(TUNNEL_MODES))
 
@@ -31,6 +31,8 @@ def validate_tunnel_mode(mode: str) -> str:
 class ModelConfig:
     finetune_repo: str = "grandhigh/Chatterbox-TTS-Indonesian"
     voice_default: str = "prompt_audio/sample_voice.wav"
+    device: str = ""  # empty = auto (cuda > mps > cpu); set "cpu" to force
+    fp16: bool = False  # half precision on cuda: ~half VRAM, minor quality risk
 
 
 @dataclass
