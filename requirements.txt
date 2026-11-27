@@ -12,5 +12,9 @@ pyyaml
 numpy<2.0
 setuptools<70
 peft
+# API server
+fastapi>=0.100.0
+uvicorn>=0.20.0
 # dev/test
 pytest
+httpx

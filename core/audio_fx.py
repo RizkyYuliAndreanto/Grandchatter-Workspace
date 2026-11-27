@@ -38,16 +38,35 @@ def pitch_shift(wav: np.ndarray, sr: int, n_steps: float) -> np.ndarray:
 
 
 def micro_fade(wav: np.ndarray, sr: int, ms: int = 10) -> np.ndarray:
-    """Linear fade in/out of `ms` milliseconds (NOT samples). Skipped when the
-    chunk is shorter than 2 fades. Prevents clicks at chunk boundaries."""
+    """Soft-edge a chunk: fast attack fade-in (click guard) + exponential
+    decay fade-out (natural voice release, NOT a hard linear cut). Skipped
+    when the chunk is shorter than 2 fades."""
     wav = _f32(wav)
     n = int(sr * ms / 1000)
     if n <= 0 or len(wav) < 2 * n:
         return wav
-    ramp = np.linspace(0.0, 1.0, n, dtype=np.float32)
-    wav[:n] *= ramp
-    wav[-n:] *= ramp[::-1]
+    wav[:n] *= np.linspace(0.0, 1.0, n, dtype=np.float32)
+    # Exponential release: full level -> -60 dB over the fade window.
+    wav[-n:] *= np.exp(np.linspace(0.0, -6.9, n, dtype=np.float32))
     return wav
+
+
+def tail_resonance(wav: np.ndarray, sr: int, ms: int = 120,
+                   decay_db: float = 24.0) -> np.ndarray:
+    """Extend the chunk with a short decaying 'hum' (natural pause feel):
+    the last ~40 ms of audio is repeated and exponentially attenuated, like a
+    voice tailing off ("mungkiiin...") instead of stopping dead at the cut."""
+    wav = _f32(wav)
+    n = int(sr * 40 / 1000)          # source grain: last 40 ms
+    tail = int(sr * ms / 1000)       # resonant tail length
+    if n <= 0 or tail <= 0 or len(wav) < 2 * n:
+        return wav
+    grain = wav[-n:]                 # repeated, each pass quieter
+    env = np.exp(np.linspace(0.0, -decay_db / 8.6859, tail // n + 1,
+                             dtype=np.float32))
+    pieces = [grain * env[i] for i in range(tail // n)]
+    resonance = np.concatenate(pieces)[:tail].astype(np.float32)
+    return np.concatenate([wav, resonance])
 
 
 def merge_chunks(chunks: list[np.ndarray], gap_s: float, sr: int) -> np.ndarray:

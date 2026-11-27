@@ -49,6 +49,96 @@ ACRONYM_WHITELIST = {
 }
 # NB: WIB/WITA/WIT deliberately NOT whitelisted — spec says spell per letter.
 
+# English words/names the Indonesian fine-tune mispronounces: rewritten to
+# Indonesian-friendly phonetic spelling so the TTS articulates them naturally.
+# Word-boundary, case-insensitive, applied BEFORE other rules.
+ENGLISH_PRONUNCIATION = {
+    "content": "konten",
+    "content creator": "konten kreator",
+    "creator": "kreator",
+    "creative": "kreatif",
+    "engagement": "engedjmen",
+    "influencer": "influenser",
+    "buzzer": "baser",
+    "streaming": "striming",
+    "livestream": "laifstriming",
+    "podcast": "podkes",
+    "shortvideo": "short video",
+    "shorts": "shorts",
+    "reels": "rilss",
+    "story": "stori",
+    "stories": "storis",
+    "update": "apdet",
+    "download": "daunlod",
+    "upload": "aplod",
+    "share": "syer",
+    "like": "laik",
+    "subscribe": "Sabskraib",
+    "newsletter": "niuzleter",
+    "deadline": "dedlain",
+    "feedback": "fidbek",
+    "workshop": "worksyop",
+    "webinar": "webinar",
+    "meeting": "miding",
+    "schedule": "skedyul",
+    "target": "target",
+    "brand": "bren",
+    "branding": "brending",
+    "marketing": "marketing",
+    "digital": "digital",
+    "platform": "platform",
+    "developer": "diveloper",
+    "freelance": "frilens",
+    "freelancer": "frilenser",
+    "remote": "rimot",
+    "offline": "oflain",
+    "online": "onlain",
+    "login": "login",
+    "checkout": "cekaut",
+    "spreading": "spreding",
+    "startup": "startap",
+    "shift": "syip",
+    "overtime": "overtaim",
+    "approval": "aprufal",
+    "attachments": "atecmen",
+    "available": "afeilebel",
+    "capacity": "kapasiti",
+    "entry level": "entry level",
+    "linkedin": "linkdin",
+    "jobstreet": "jobstrit",
+    "youtube": "yutub",
+    "tiktok": "tiktok",
+    "instagram": "instagrem",
+    "facebook": "fesbuk",
+    "whatsapp": "watsap",
+    "google": "gugel",
+    "zoom": "zum",
+    "canva": "kanva",
+    "excel": "eksel",
+    "word": "werd",
+    "powerpoint": "pauerpoin",
+    "email": "imel",
+    "e-commerce": "e-komerse",
+    "ecommerce": "ikomerse",
+}
+
+# Vowel disambiguation (KBBI-style respelling) for words the model reads with
+# the wrong [e] vowel. é = close-mid [e] (taling), è = open-mid [ɛ], ê = schwa
+# [ə] (pepet). Only words with a KNOWN wrong reading go here — an unmarked "e"
+# is left alone (the fine-tune already handles most words correctly).
+# Respell to plain e-forms the model demonstrably reads correctly.
+E_VOWEL_FIXES = {
+    # schwa [ə] (pepet) — model tends to read these with taling
+    "segar": "sêgar", "telur": "têlur", "lemah": "lêmah",
+    "terasa": "têrasa", "gelap": "gêlap", "dekat": "dêkat",
+    "berat": "bêrat", "serang": "sêrang", "gegap": "gêgap",
+    # close-mid [e] (taling) — model tends to read these with pepet
+    "sate": "saté", "kafe": "kafé", "espresso": "espresso",
+    # open-mid [ɛ] — model tends to read these with pepet/taling
+    "bebek": "bèbèk", "copet": "copèt", "cerita": "cèrita",
+    "terbalik": "têrbalik",
+}
+
 # ---------------------------------------------------------------------------
 
 _WORD = r"[A-Za-z]"
@@ -122,7 +212,28 @@ def _time_to_words(m: re.Match) -> str:
 
 # ---------------------------------------------------------------------------
 
+def _expand_english(text: str) -> str:
+    """Rewrite English terms to Indonesian-friendly phonetic spelling so the
+    fine-tune articulates them naturally (case preserved-ish: replacement is
+    lowercase except where the dict entry capitalizes). Longest keys first so
+    multi-word phrases win over single words."""
+    for term, pron in sorted(ENGLISH_PRONUNCIATION.items(),
+                             key=lambda kv: -len(kv[0])):
+        text = re.sub(rf"\b{re.escape(term)}\b", pron, text, flags=re.IGNORECASE)
+    return text
+
+
+def _fix_e_vowels(text: str) -> str:
+    """KBBI-style é/è/ê respelling for words with a known wrong [e] reading.
+    Word-boundary, case-sensitive on the lowercase key only."""
+    for w, pron in E_VOWEL_FIXES.items():
+        text = re.sub(rf"\b{w}\b", pron, text)
+    return text
+
+
 def _expand_abbreviations(text: str) -> str:
+    text = _expand_english(text)
+    text = _fix_e_vowels(text)
     for abbr, full in ABBREVIATIONS.items():
         text = re.sub(re.escape(abbr) + r"(?=\s|$|[,;)\"])", full, text)
     informal = {k: v for k, v in INFORMAL.items()}

@@ -20,3 +20,10 @@ params:
 output:
   mp3: false             # true = encode MP3 (needs ffmpeg)
   keep_chunks: true      # false = delete chunks after merge (save disk)
+
+api:
+  host: "127.0.0.1"      # bind host for local REST API
+  port: 8000             # port for local REST API
+  api_key: "dev-local-secret-key"  # X-API-Key header auth (or set ENV: TTS_API_KEY)
+  default_profile: "low_resource"  # low_resource (kentang) | fast (dewa)
+  output_dir: "outputs/api"        # audio output directory for batch jobs

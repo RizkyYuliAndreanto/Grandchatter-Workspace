@@ -63,9 +63,10 @@ def test_full_run_artifacts(voice_file, tmp_path):
     manifest = json.load(open(__import__("os").path.join(r["run_dir"], "manifest.json"),
                               encoding="utf-8"))
     assert all(c["status"] in ("ok", "resumed") for c in manifest["chunks"])
-    # duration = sum(chunks) + (n-1)*gap  (gap 0.3 default, sr 16000)
+    # duration = sum(chunks) + (n-1)*gap + tail_resonance (0.12 s/chunk)
+    # (gap 0.3 default, sr 16000)
     wav, sr = sf.read(r["final_path"])
-    assert len(wav) / sr == pytest.approx(4 + 3 * 0.3, abs=0.05)
+    assert len(wav) / sr == pytest.approx(4 + 3 * 0.3 + 4 * 0.12, abs=0.05)
 
 
 def test_resume_skips_existing(voice_file, tmp_path):

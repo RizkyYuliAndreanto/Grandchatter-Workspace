@@ -72,3 +72,33 @@ def test_idempotent():
 def test_time_edge_cases():
     assert normalize("jam 14:00.") == "jam empat belas nol nol."
     assert normalize("jam 07:05.") == "jam nol tujuh nol lima."
+
+
+def test_english_pronunciation():
+    out = normalize("Upload konten ke Instagram, cek engagement dan feedback.")
+    assert "aplod konten ke instagrem" in out
+    assert "engedjmen" in out and "fidbek" in out
+    out2 = normalize("Meeting di Zoom jam 09:00, deadline besok.")
+    assert "miding di zum" in out2 and "dedlain" in out2
+
+
+def test_english_multiword_phrase_wins():
+    # "content creator" must map as the phrase, not word-by-word
+    out = normalize("Dia content creator profesional.")
+    assert "konten kreator" in out
+
+
+def test_english_case_insensitive():
+    assert "kreator" in normalize("CREATOR baru.")
+
+
+def test_e_vowel_disambiguation():
+    # schwa (pepet) words respelled ê; open-mid ɛ words respelled è
+    out = normalize("Empat telur segar terasa lemah, satu bebek copet.")
+    assert "têlur" in out and "sêgar" in out and "têrasa" in out
+    assert "bèbèk" in out and "copèt" in out
+
+
+def test_e_vowel_case_sensitive():
+    # proper nouns / ALL-CAPS untouched
+    assert "Bebek" in normalize("Bebek Goreng H. Slamet.")

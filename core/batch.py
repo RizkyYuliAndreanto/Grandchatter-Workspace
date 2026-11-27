@@ -93,12 +93,14 @@ def run_batch(text: str, voice_path: str, settings, out_dir: str = "outputs",
             continue
         sr = chunk_sr
 
-        # Pipeline order: tempo -> pitch -> fade (flow-pipeline.md [4]-[6]).
+        # Pipeline order: tempo -> pitch -> fade -> tail resonance
+        # (flow-pipeline.md [4]-[6] + natural-pause release).
         if settings.params.tempo != 1.0:
             wav = fx.time_stretch(wav, settings.params.tempo)
         if settings.params.pitch != 0.0:
             wav = fx.pitch_shift(wav, sr, settings.params.pitch)
         wav = fx.micro_fade(wav, sr)
+        wav = fx.tail_resonance(wav, sr)
 
         sf.write(path, wav, sr)  # crash-safe: on disk BEFORE next chunk
         wavs.append(wav)

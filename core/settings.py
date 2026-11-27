@@ -69,11 +69,21 @@ class OutputConfig:
 
 
 @dataclass
+class ApiConfig:
+    host: str = "127.0.0.1"
+    port: int = 8000
+    api_key: str = "dev-local-secret-key"
+    default_profile: str = "low_resource"
+    output_dir: str = "outputs/api"
+
+
+@dataclass
 class Settings:
     model: ModelConfig = field(default_factory=ModelConfig)
     tunnel: TunnelConfig = field(default_factory=TunnelConfig)
     params: Params = field(default_factory=Params)
     output: OutputConfig = field(default_factory=OutputConfig)
+    api: ApiConfig = field(default_factory=ApiConfig)
 
     def override(self, params: dict) -> None:
         """Clamp values outside LIMITS instead of raising (UI sliders are bounded,
@@ -88,6 +98,9 @@ def _parse(data: dict) -> Settings:
     s.tunnel.mode = validate_tunnel_mode(s.tunnel.mode)
     s.params = Params(**(data.get("params") or {}))
     s.output = OutputConfig(**(data.get("output") or {}))
+    s.api = ApiConfig(**(data.get("api") or {}))
+    if os.environ.get("TTS_API_KEY"):
+        s.api.api_key = os.environ["TTS_API_KEY"]
     return s
 
 

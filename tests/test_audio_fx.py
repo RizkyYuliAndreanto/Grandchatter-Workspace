@@ -77,6 +77,33 @@ def test_micro_fade_short_chunk_no_crash():
     assert np.array_equal(out, tiny)
 
 
+def test_micro_fade_exponential_decay_not_linear():
+    # Natural release: fade-out must decay faster at the start (exp) than a
+    # linear ramp would — sample at 1/4 into the window sits well below half.
+    wav = np.full(SR, 0.5, dtype=np.float32)
+    out = fx.micro_fade(wav, SR, ms=100)
+    n = int(SR * 0.1)
+    quarter = out[-n:][n // 4]
+    assert quarter < 0.25 * 0.5  # exp(-6.9*0.25) ≈ 0.18 of full amplitude
+
+
+# --- tail resonance -----------------------------------------------------------
+
+def test_tail_resonance_extends_and_decays():
+    wav = sine(440, 1.0)
+    out = fx.tail_resonance(wav, SR, ms=120)
+    assert fx.duration_s(out, SR) == pytest.approx(1.12, abs=0.001)
+    tail = out[int(1.0 * SR):]
+    # tail starts audible (the hum) and decays toward silence
+    assert float(np.max(np.abs(tail[:400]))) > 0.05
+    assert float(np.max(np.abs(tail[-100:]))) < float(np.max(np.abs(tail[:400]))) / 3
+
+
+def test_tail_resonance_short_chunk_no_crash():
+    tiny = np.full(10, 0.5, dtype=np.float32)
+    assert np.array_equal(fx.tail_resonance(tiny, SR, ms=120), tiny)
+
+
 # --- merge -----------------------------------------------------------------
 
 def test_merge_with_gap():

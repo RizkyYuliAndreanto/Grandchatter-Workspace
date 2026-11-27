@@ -10,7 +10,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-Chatterbox-EE4C2C?logo=pytorch&logoColor=white)
 ![Gradio](https://img.shields.io/badge/UI-Gradio-orange?logo=gradio&logoColor=white)
 ![Kaggle](https://img.shields.io/badge/Compute-Kaggle%20GPU-20BEFF?logo=kaggle&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-57%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-80%20passed-brightgreen)
 
 </div>
 
@@ -40,7 +40,7 @@ Naskah panjang masuk → audio suara natural keluar. Dua mode deploy:
 | 🔁 | **Anti-Runtuh** | Chunk gagal di-retry 1× (temperature bump), dicatat di manifest, run tetap selesai |
 | 🌐 | **3 Mode Tunnel + Lokal** | `local` (tanpa tunnel, laptop-only) · `share` (zero-setup) · `ngrok` (domain statis) · `cloudflare` (quick tunnel) — via config, semua ber-password |
 | 💾 | **Export Sekali Klik** | ZIP berisi final WAV + semua chunk + manifest.json |
-| 🧪 | **57 Unit Test** | Pipeline teks, DSP, batch, resume, tunnel — semua teruji |
+| 🧪 | **80 Unit Test** | Pipeline teks, DSP, batch, resume, tunnel, & REST API — semua teruji |
 
 ## 📦 Instalasi
 
@@ -72,8 +72,10 @@ Naskah panjang masuk → audio suara natural keluar. Dua mode deploy:
 ```
 indotts-kaggle/
 ├── app.py                  # Gradio UI + entry point (--dry-ui tanpa GPU; HF_HOME → hf-cache/)
+├── server.py               # REST API Server FastAPI (Headless, API-Key, dual profile)
 ├── launcher.ipynb          # 3-cell Kaggle notebook
 ├── hf-cache/               # model lokal ±2 GB (gitignored — drive project, bukan C:)
+├── api/                    # Schemas, Auth, Profiles, Engine adapter
 ├── core/
 │   ├── normalizer.py       # angka/rupiah/HP/jam (14:30 → "empat belas tiga puluh")/akronim
 │   ├── chunker.py          # split kalimat → koma → kata; ≤250 char anti-repetisi
@@ -83,7 +85,8 @@ indotts-kaggle/
 │   ├── export.py           # ZIP run folder
 │   └── settings.py         # config.yaml + LIMITS (sumber kebenaran rentang)
 ├── tunnels/                # local · share · ngrok · cloudflare + fallback otomatis
-└── tests/                  # 57 test — hijau tanpa GPU
+├── agent/                  # Specs, PRD, SDLC, Guardrails, & Client Integration Guide
+└── tests/                  # 80 test (57 core + 23 api) — hijau tanpa GPU
 ```
 
 **Urutan pipeline terkunci:** normalisasi → chunking → TTS → tempo → pitch → fade → merge → normalize. Setiap urutan punya alasan — dijabarkan di [`tasks/flows/flow-pipeline.md`](tasks/flows/flow-pipeline.md).
@@ -105,7 +108,7 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-pytest tests\              # 57 test, tanpa GPU
+pytest tests\              # 80 test (57 core + 23 REST API), tanpa GPU
 python app.py --dry-ui     # UI penuh dengan mock synthesizer (tanpa model)
 ```
 
@@ -136,10 +139,34 @@ dan tetap `device: "cpu"` — auto-detect hanya akan memakai GPU 4GB jika cukup.
 > (tercepat, paling aman). `share` = membuka tunnel publik `*.gradio.live`
 > (untuk mengakses dari HP/perangkat lain).
 
+### 🔌 REST API Server (Untuk Aplikasi Eksternal & Video Maker)
+
+Project ini dilengkapi FastAPI server mandiri untuk di-hit langsung oleh aplikasi eksternal (bot, pembuat video short, pipeline otomatis) tanpa antarmuka browser:
+
+```powershell
+# Menjalankan REST API server lokal
+python server.py --host 127.0.0.1 --port 8000
+
+# Mode testing cepat tanpa GPU (mock engine)
+python server.py --dry-run
+```
+
+- **Autentikasi:** Header `X-API-Key: dev-local-secret-key` (dapat diubah di `config.yaml` / ENV `TTS_API_KEY`).
+- **Endpoint Utama:**
+  - `POST /api/v1/tts/synthesize`: Single line naskah -> direct WAV audio.
+  - `POST /api/v1/tts/batch`: Array naskah (30+ hingga ratusan segmen video short/dokumenter) dalam 1 request.
+  - `GET /api/v1/voices`: Daftar suara di `prompt_audio/`.
+- **Dual Hardware Profile:**
+  - `profile: "low_resource"` → Device Kentang (CPU/VRAM kecil ≤ 4GB, chunk pendek, memory cleanup).
+  - `profile: "fast"` → Device Dewa (GPU VRAM lega ≥ 6GB+, FP16 + TF32).
+- Dokumentasi lengkap & contoh kode klien (Python, Node.js, cURL): [`docs/PANDUAN_INTEGRASI_API.md`](docs/PANDUAN_INTEGRASI_API.md).
+
 ## 📄 Dokumentasi
 
 | File | Isi |
 |---|---|
+| [`docs/PANDUAN_MENJALANKAN_PROJECT.md`](docs/PANDUAN_MENJALANKAN_PROJECT.md) | **Panduan Menjalankan Project** (GUI Gradio vs REST API, Lokal CPU/GPU & Kaggle) |
+| [`docs/PANDUAN_INTEGRASI_API.md`](docs/PANDUAN_INTEGRASI_API.md) | **Panduan Integrasi Aplikasi Eksternal** (Cara Hit API, Naskah Video Short 30 Segmen, Batch, Auth) |
 | [`PRD.md`](../PRD.md) | Sumber kebenaran fitur + 10 acceptance criteria |
 | [`PROGRESS.md`](../PROGRESS.md) | Tracker lintas-AI: status task, keputusan, temuan API |
 | [`tasks/`](tasks/) | 15 task file rinci: langkah, wajib/dilarang, konsekuensi |
